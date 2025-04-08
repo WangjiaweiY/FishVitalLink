@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FishVitalLink - 管理端</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #1E88E5;
+            --primary-green: #4CAF50;
+            --accent-orange: #FF9800;
+            --danger-red: #F44336;
+            --bg-light: #F5F7FA;
+            --sidebar-width: 250px;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-light);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 登录页面样式 */
+        .auth-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            z-index: 1000;
+        }
+
+        .auth-container.active {
+            display: block;
+        }
+
+        .auth-header {
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        .auth-logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 1rem;
+        }
+
+        .auth-title {
+            color: var(--primary-blue);
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .auth-form {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 0.2rem rgba(30, 136, 229, 0.25);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-blue);
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+        }
+
+        /* 侧边栏样式 */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100%;
+            background-color: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            z-index: 100;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem 1rem;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+        }
+
+        .sidebar-logo {
+            height: 40px;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-title {
+            color: var(--primary-blue);
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .sidebar-menu {
+            padding: 1rem 0;
+        }
+
+        .menu-item {
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .menu-item:hover {
+            background-color: rgba(30, 136, 229, 0.1);
+            color: var(--primary-blue);
+        }
+
+        .menu-item.active {
+            background-color: rgba(30, 136, 229, 0.1);
+            color: var(--primary-blue);
+            border-left: 3px solid var(--primary-blue);
+        }
+
+        .menu-item i {
+            margin-right: 0.75rem;
+            font-size: 1.2rem;
+        }
+
+        /* 主要内容区域 */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 1.5rem;
+            min-height: 100vh;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+        /* 卡片样式 */
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .stat-card {
+            text-align: center;
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .stat-icon.blue {
+            background-color: var(--primary-blue);
+        }
+
+        .stat-icon.green {
+            background-color: var(--primary-green);
+        }
+
+        .stat-icon.orange {
+            background-color: var(--accent-orange);
+        }
+
+        .stat-icon.red {
+            background-color: var(--danger-red);
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* 用户列表样式 */
+        .user-list {
+            margin-top: 1rem;
+        }
+
+        .user-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 1rem;
+            background-color: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-weight: bold;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+
+        .user-role {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .user-status {
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin-right: 1rem;
+        }
+
+        .user-status.active {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: var(--primary-green);
+        }
+
+        .user-status.inactive {
+            background-color: rgba(244, 67, 54, 0.1);
+            color: var(--danger-red);
+        }
+
+        /* 表格样式 */
+        .table {
+            background-color: white;
+        }
+
+        .table th {
+            background-color: #f5f5f5;
+            font-weight: 600;
+        }
+
+        /* 搜索栏 */
+        .search-container {
+            margin-bottom: 1.5rem;
+        }
+
+        /* 分页 */
+        .pagination {
+            margin-top: 1rem;
+        }
+
+        .page-link {
+            color: var(--primary-blue);
+        }
+
+        .page-item.active .page-link {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+
+        /* 页面容器 */
+        .page-container {
+            display: none;
+        }
+
+        .page-container.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- 登录页面 -->
+    <div class="auth-container active">
+        <div class="auth-header">
+            <img src="logo.png" alt="FishVitalLink" class="auth-logo">
+            <h1 class="auth-title">FishVitalLink - 管理端</h1>
+        </div>
+        
+        <div class="auth-form">
+            <div class="mb-3">
+                <input type="text" class="form-control" id="loginUsername" placeholder="管理员账号">
+            </div>
+            <div class="mb-3">
+                <input type="password" class="form-control" id="loginPassword" placeholder="密码">
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="rememberMe">
+                    <label class="form-check-label" for="rememberMe">记住我</label>
+                </div>
+                <a href="#" class="text-decoration-none">忘记密码？</a>
+            </div>
+            <button class="btn btn-primary w-100" onclick="handleLogin()">登录</button>
+        </div>
+    </div>
+
+    <!-- 侧边栏导航 -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img src="logo.png" alt="FishVitalLink" class="sidebar-logo">
+            <div class="sidebar-title">FishVitalLink</div>
+        </div>
+        <div class="sidebar-menu">
+            <div class="menu-item active" data-page="dashboard-page">
+                <i class="mdi mdi-view-dashboard"></i>
+                <span>系统概况</span>
+            </div>
+            <div class="menu-item" data-page="user-page">
+                <i class="mdi mdi-account-group"></i>
+                <span>用户管理</span>
+            </div>
+            <div class="menu-item" data-page="role-page">
+                <i class="mdi mdi-shield-account"></i>
+                <span>角色权限</span>
+            </div>
+            <div class="menu-item" data-page="log-page">
+                <i class="mdi mdi-file-document-outline"></i>
+                <span>系统日志</span>
+            </div>
+            <div class="menu-item" data-page="monitor-page">
+                <i class="mdi mdi-chart-line"></i>
+                <span>系统监控</span>
+            </div>
+            <div class="menu-item" data-page="settings-page">
+                <i class="mdi mdi-cog"></i>
+                <span>系统设置</span>
+            </div>
+            <div class="menu-item">
+                <i class="mdi mdi-logout"></i>
+                <span>退出登录</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主要内容区域 -->
+    <div class="main-content">
+        <!-- 系统概况页面 -->
+        <div id="dashboard-page" class="page-container active">
+            <h1 class="page-title">系统概况</h1>
+            
+            <!-- 统计数据 -->
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body stat-card">
+                            <div class="stat-icon blue">
+                                <i class="mdi mdi-account-multiple"></i>
+                            </div>
+                            <div class="stat-value">3,256</div>
+                            <div class="stat-label">注册用户数</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body stat-card">
+                            <div class="stat-icon green">
+                                <i class="mdi mdi-stethoscope"></i>
+                            </div>
+                            <div class="stat-value">128</div>
+                            <div class="stat-label">医生数量</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body stat-card">
+                            <div class="stat-icon orange">
+                                <i class="mdi mdi-calendar-check"></i>
+                            </div>
+                            <div class="stat-value">856</div>
+                            <div class="stat-label">今日问诊数</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body stat-card">
+                            <div class="stat-icon red">
+                                <i class="mdi mdi-alert-circle"></i>
+                            </div>
+                            <div class="stat-value">12</div>
+                            <div class="stat-label">系统告警数</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 系统状态 -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">系统状态</h5>
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h6>CPU使用率</h6>
+                            <div class="progress mb-4" style="height: 10px;">
+                                <div class="progress-bar" role="progressbar" style="width: 45%;" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100">45%</div>
+                            </div>
+                            <h6>内存使用率</h6>
+                            <div class="progress mb-4" style="height: 10px;">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 62%;" aria-valuenow="62" aria-valuemin="0" aria-valuemax="100">62%</div>
+                            </div>
+                            <h6>存储空间</h6>
+                            <div class="progress mb-4" style="height: 10px;">
+                                <div class="progress-bar bg-info" role="progressbar" style="width: 38%;" aria-valuenow="38" aria-valuemin="0" aria-valuemax="100">38%</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-sm">
+                                    <tbody>
+                                        <tr>
+                                            <th scope="row">系统运行时间</th>
+                                            <td>32天14小时26分钟</td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">平均响应时间</th>
+                                            <td>78ms</td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">当前在线用户</th>
+                                            <td>428人</td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">系统版本</th>
+                                            <td>v2.3.5 (2024-03-15)</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 最近活动 -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">最近活动</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>时间</th>
+                                    <th>用户</th>
+                                    <th>操作</th>
+                                    <th>详情</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>2024-03-16 10:23</td>
+                                    <td>管理员</td>
+                                    <td>添加用户</td>
+                                    <td>新增医生账号"王医生"</td>
+                                </tr>
+                                <tr>
+                                    <td>2024-03-16 09:45</td>
+                                    <td>系统</td>
+                                    <td>系统备份</td>
+                                    <td>自动完成数据库备份</td>
+                                </tr>
+                                <tr>
+                                    <td>2024-03-16 09:12</td>
+                                    <td>管理员</td>
+                                    <td>修改权限</td>
+                                    <td>调整"医生组"访问权限</td>
+                                </tr>
+                                <tr>
+                                    <td>2024-03-16 08:56</td>
+                                    <td>管理员</td>
+                                    <td>登录系统</td>
+                                    <td>从192.168.1.103登录</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 用户管理页面 -->
+        <div id="user-page" class="page-container">
+            <h1 class="page-title">用户管理</h1>
+            
+            <!-- 搜索和操作栏 -->
+            <div class="card search-container">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="搜索用户姓名、ID或手机号">
+                                <button class="btn btn-primary">
+                                    <i class="mdi mdi-magnify"></i>
+                                    搜索
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <button class="btn btn-success">
+                                <i class="mdi mdi-plus"></i>
+                                添加用户
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 用户列表 -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>用户ID</th>
+                                    <th>用户姓名</th>
+                                    <th>角色</th>
+                                    <th>手机号</th>
+                                    <th>注册时间</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>10001</td>
+                                    <td>张医生</td>
+                                    <td>医生</td>
+                                    <td>138****1234</td>
+                                    <td>2024-01-15</td>
+                                    <td><span class="user-status active">已激活</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">编辑</button>
+                                        <button class="btn btn-sm btn-outline-danger">禁用</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>10002</td>
+                                    <td>李小明</td>
+                                    <td>患者</td>
+                                    <td>139****5678</td>
+                                    <td>2024-02-20</td>
+                                    <td><span class="user-status active">已激活</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">编辑</button>
+                                        <button class="btn btn-sm btn-outline-danger">禁用</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>10003</td>
+                                    <td>王管理</td>
+                                    <td>管理员</td>
+                                    <td>135****9012</td>
+                                    <td>2023-12-01</td>
+                                    <td><span class="user-status active">已激活</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">编辑</button>
+                                        <button class="btn btn-sm btn-outline-danger">禁用</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>10004</td>
+                                    <td>赵护士</td>
+                                    <td>护士</td>
+                                    <td>137****3456</td>
+                                    <td>2024-03-05</td>
+                                    <td><span class="user-status inactive">已禁用</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">编辑</button>
+                                        <button class="btn btn-sm btn-outline-success">启用</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- 分页 -->
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-end">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">上一页</a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">下一页</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 角色权限页面 -->
+        <div id="role-page" class="page-container">
+            <h1 class="page-title">角色权限</h1>
+            
+            <!-- 角色列表 -->
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">角色列表</h5>
+                            <div class="list-group mt-3">
+                                <a href="#" class="list-group-item list-group-item-action active">
+                                    管理员
+                                </a>
+                                <a href="#" class="list-group-item list-group-item-action">医生</a>
+                                <a href="#" class="list-group-item list-group-item-action">护士</a>
+                                <a href="#" class="list-group-item list-group-item-action">患者</a>
+                                <a href="#" class="list-group-item list-group-item-action">前台</a>
+                            </div>
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-success">添加角色</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="card-title">管理员权限配置</h5>
+                                <button class="btn btn-primary">保存修改</button>
+                            </div>
+                            <div class="mt-4">
+                                <h6 class="fw-bold">系统管理</h6>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="perm1" checked>
+                                    <label class="form-check-label" for="perm1">
+                                        系统监控查看
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="perm2" checked>
+                                    <label class="form-check-label" for="perm2">
+                                        系统配置修改
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="perm3" checked>
+                                    <label class="form-check-label" for="perm3">
+                                        系统日志查看
+                                    </label>
+                                </div>
+                                
+                                <h6 class="fw-bold mt-4">用户管理</h6>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="perm4" checked>
+                                    <label class="form-check-label" for="perm4">
+                                        用户查看
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="perm5" checked>
+                                    <label class="form-check-label" for="perm5">
+                                        用户创建/编辑
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="perm6" checked>
+                                    <label class="form-check-label" for="perm6">
+                                        用户删除/禁用
+                                    </label>
+                                </div>
+                                
+                                <h6 class="fw-bold mt-4">角色权限</h6>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="perm7" checked>
+                                    <label class="form-check-label" for="perm7">
+                                        角色查看
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="perm8" checked>
+                                    <label class="form-check-label" for="perm8">
+                                        角色创建/编辑
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="perm9" checked>
+                                    <label class="form-check-label" for="perm9">
+                                        权限分配
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 系统日志页面 -->
+        <div id="log-page" class="page-container">
+            <h1 class="page-title">系统日志</h1>
+            
+            <!-- 日志筛选 -->
+            <div class="card search-container">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <select class="form-select">
+                                <option selected>全部日志类型</option>
+                                <option>登录日志</option>
+                                <option>操作日志</option>
+                                <option>系统日志</option>
+                                <option>错误日志</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select">
+                                <option selected>全部用户</option>
+                                <option>管理员</option>
+                                <option>医生</option>
+                                <option>患者</option>
+                                <option>系统</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <span class="input-group-text">日期范围</span>
+                                <input type="date" class="form-control">
+                                <input type="date" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-primary w-100">筛选</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 日志列表 -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>日志ID</th>
+                                    <th>时间</th>
+                                    <th>用户</th>
+                                    <th>IP地址</th>
+                                    <th>日志类型</th>
+                                    <th>操作内容</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>L2024031601</td>
+                                    <td>2024-03-16 10:23:15</td>
+                                    <td>管理员</td>
+                                    <td>192.168.1.103</td>
+                                    <td>操作日志</td>
+                                    <td>添加用户</td>
+                                    <td><span class="badge bg-success">成功</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">详情</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>L2024031602</td>
+                                    <td>2024-03-16 09:45:32</td>
+                                    <td>系统</td>
+                                    <td>127.0.0.1</td>
+                                    <td>系统日志</td>
+                                    <td>系统备份</td>
+                                    <td><span class="badge bg-success">成功</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">详情</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>L2024031603</td>
+                                    <td>2024-03-16 09:12:45</td>
+                                    <td>管理员</td>
+                                    <td>192.168.1.103</td>
+                                    <td>操作日志</td>
+                                    <td>修改权限</td>
+                                    <td><span class="badge bg-success">成功</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">详情</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>L2024031604</td>
+                                    <td>2024-03-16 08:56:21</td>
+                                    <td>管理员</td>
+                                    <td>192.168.1.103</td>
+                                    <td>登录日志</td>
+                                    <td>账号登录</td>
+                                    <td><span class="badge bg-success">成功</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">详情</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>L2024031605</td>
+                                    <td>2024-03-16 08:55:18</td>
+                                    <td>管理员</td>
+                                    <td>192.168.1.103</td>
+                                    <td>登录日志</td>
+                                    <td>账号登录</td>
+                                    <td><span class="badge bg-danger">失败</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">详情</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- 分页 -->
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-end">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">上一页</a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">下一页</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 系统监控页面 -->
+        <div id="monitor-page" class="page-container">
+            <h1 class="page-title">系统监控</h1>
+            
+            <!-- 实时监控 -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">实时系统状态</h5>
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h6>CPU使用率 <span class="badge bg-success">正常</span></h6>
+                            <div class="progress mb-3" style="height: 20px;">
+                                <div class="progress-bar" role="progressbar" style="width: 45%;" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100">45%</div>
+                            </div>
+                            
+                            <h6>内存使用率 <span class="badge bg-success">正常</span></h6>
+                            <div class="progress mb-3" style="height: 20px;">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 62%;" aria-valuenow="62" aria-valuemin="0" aria-valuemax="100">62%</div>
+                            </div>
+                            
+                            <h6>系统负载 <span class="badge bg-success">正常</span></h6>
+                            <div class="progress mb-3" style="height: 20px;">
+                                <div class="progress-bar bg-info" role="progressbar" style="width: 28%;" aria-valuenow="28" aria-valuemin="0" aria-valuemax="100">28%</div>
+                            </div>
+                            
+                            <h6>网络流量 <span class="badge bg-warning">偏高</span></h6>
+                            <div class="progress mb-3" style="height: 20px;">
+                                <div class="progress-bar bg-warning" role="progressbar" style="width: 78%;" aria-valuenow="78" aria-valuemin="0" aria-valuemax="100">78%</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>磁盘使用情况</h6>
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>分区</th>
+                                        <th>总容量</th>
+                                        <th>已使用</th>
+                                        <th>使用率</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>/</td>
+                                        <td>500GB</td>
+                                        <td>160GB</td>
+                                        <td>
+                                            <div class="progress" style="height: 5px;">
+                                                <div class="progress-bar bg-success" style="width: 32%"></div>
+                                            </div>
+                                            <small>32%</small>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>/data</td>
+                                        <td>1TB</td>
+                                        <td>420GB</td>
+                                        <td>
+                                            <div class="progress" style="height: 5px;">
+                                                <div class="progress-bar bg-success" style="width: 42%"></div>
+                                            </div>
+                                            <small>42%</small>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>/backup</td>
+                                        <td>2TB</td>
+                                        <td>1.4TB</td>
+                                        <td>
+                                            <div class="progress" style="height: 5px;">
+                                                <div class="progress-bar bg-warning" style="width: 70%"></div>
+                                            </div>
+                                            <small>70%</small>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 服务状态 -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">微服务状态</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>服务名称</th>
+                                    <th>状态</th>
+                                    <th>节点数</th>
+                                    <th>响应时间</th>
+                                    <th>平均负载</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>用户服务</td>
+                                    <td><span class="badge bg-success">在线</span></td>
+                                    <td>3/3</td>
+                                    <td>45ms</td>
+                                    <td>
+                                        <div class="progress" style="height: 5px;">
+                                            <div class="progress-bar bg-success" style="width: 35%"></div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">详情</button>
+                                        <button class="btn btn-sm btn-outline-warning">重启</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>问诊服务</td>
+                                    <td><span class="badge bg-success">在线</span></td>
+                                    <td>2/2</td>
+                                    <td>68ms</td>
+                                    <td>
+                                        <div class="progress" style="height: 5px;">
+                                            <div class="progress-bar bg-success" style="width: 52%"></div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">详情</button>
+                                        <button class="btn btn-sm btn-outline-warning">重启</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>数据服务</td>
+                                    <td><span class="badge bg-warning">部分可用</span></td>
+                                    <td>2/3</td>
+                                    <td>112ms</td>
+                                    <td>
+                                        <div class="progress" style="height: 5px;">
+                                            <div class="progress-bar bg-warning" style="width: 78%"></div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">详情</button>
+                                        <button class="btn btn-sm btn-outline-warning">重启</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>数据分析服务</td>
+                                    <td><span class="badge bg-success">在线</span></td>
+                                    <td>1/1</td>
+                                    <td>156ms</td>
+                                    <td>
+                                        <div class="progress" style="height: 5px;">
+                                            <div class="progress-bar bg-success" style="width: 42%"></div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">详情</button>
+                                        <button class="btn btn-sm btn-outline-warning">重启</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>消息推送服务</td>
+                                    <td><span class="badge bg-danger">离线</span></td>
+                                    <td>0/2</td>
+                                    <td>--</td>
+                                    <td>
+                                        <div class="progress" style="height: 5px;">
+                                            <div class="progress-bar bg-danger" style="width: 0%"></div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">详情</button>
+                                        <button class="btn btn-sm btn-outline-success">启动</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 告警信息 -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">系统告警</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>时间</th>
+                                    <th>告警级别</th>
+                                    <th>告警来源</th>
+                                    <th>告警内容</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>2024-03-16 09:12:35</td>
+                                    <td><span class="badge bg-danger">严重</span></td>
+                                    <td>消息推送服务</td>
+                                    <td>服务无法启动，连接数据库失败</td>
+                                    <td>未处理</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">详情</button>
+                                        <button class="btn btn-sm btn-outline-success">标记已处理</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>2024-03-16 08:45:12</td>
+                                    <td><span class="badge bg-warning">警告</span></td>
+                                    <td>数据服务</td>
+                                    <td>节点2响应缓慢，延迟超过200ms</td>
+                                    <td>未处理</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">详情</button>
+                                        <button class="btn btn-sm btn-outline-success">标记已处理</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>2024-03-16 07:30:45</td>
+                                    <td><span class="badge bg-warning">警告</span></td>
+                                    <td>系统</td>
+                                    <td>网络流量异常，可能存在攻击行为</td>
+                                    <td>未处理</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">详情</button>
+                                        <button class="btn btn-sm btn-outline-success">标记已处理</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>2024-03-15 23:15:28</td>
+                                    <td><span class="badge bg-info">提醒</span></td>
+                                    <td>/backup分区</td>
+                                    <td>存储空间使用率达到70%</td>
+                                    <td>已处理</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">详情</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 系统设置页面 -->
+        <div id="settings-page" class="page-container">
+            <h1 class="page-title">系统设置</h1>
+            
+            <!-- 设置选项卡 -->
+            <div class="card">
+                <div class="card-body">
+                    <ul class="nav nav-tabs" id="settingsTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab" aria-controls="general" aria-selected="true">基本设置</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button" role="tab" aria-controls="security" aria-selected="false">安全配置</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="notification-tab" data-bs-toggle="tab" data-bs-target="#notification" type="button" role="tab" aria-controls="notification" aria-selected="false">消息通知</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="backup-tab" data-bs-toggle="tab" data-bs-target="#backup" type="button" role="tab" aria-controls="backup" aria-selected="false">备份恢复</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content p-3 border border-top-0 rounded-bottom" id="settingsTabContent">
+                        <!-- 基本设置 -->
+                        <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
+                            <form>
+                                <div class="mb-3">
+                                    <label for="systemName" class="form-label">系统名称</label>
+                                    <input type="text" class="form-control" id="systemName" value="FishVitalLink医疗健康管理平台">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="systemLogo" class="form-label">系统Logo</label>
+                                    <input type="file" class="form-control" id="systemLogo">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="contactEmail" class="form-label">系统联系邮箱</label>
+                                    <input type="email" class="form-control" id="contactEmail" value="admin@fishvitallink.com">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="timeZone" class="form-label">系统时区</label>
+                                    <select class="form-select" id="timeZone">
+                                        <option value="Asia/Shanghai" selected>中国标准时间 (GMT+8)</option>
+                                        <option value="Asia/Hong_Kong">香港时间 (GMT+8)</option>
+                                        <option value="America/New_York">纽约时间 (GMT-5)</option>
+                                        <option value="Europe/London">伦敦时间 (GMT+0)</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="dateFormat" class="form-label">日期格式</label>
+                                    <select class="form-select" id="dateFormat">
+                                        <option value="YYYY-MM-DD" selected>YYYY-MM-DD</option>
+                                        <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                                        <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="language" class="form-label">系统语言</label>
+                                    <select class="form-select" id="language">
+                                        <option value="zh_CN" selected>简体中文</option>
+                                        <option value="en_US">English (US)</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary">保存设置</button>
+                            </form>
+                        </div>
+                        
+                        <!-- 安全配置 -->
+                        <div class="tab-pane fade" id="security" role="tabpanel" aria-labelledby="security-tab">
+                            <form>
+                                <div class="mb-3">
+                                    <label class="form-label">登录安全</label>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="multiFactorAuth" checked>
+                                        <label class="form-check-label" for="multiFactorAuth">启用多因素认证</label>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="failedLockout" checked>
+                                        <label class="form-check-label" for="failedLockout">登录失败锁定</label>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="failedAttempts" class="form-label">允许的登录失败次数</label>
+                                    <input type="number" class="form-control" id="failedAttempts" value="5">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="lockoutDuration" class="form-label">锁定时长（分钟）</label>
+                                    <input type="number" class="form-control" id="lockoutDuration" value="30">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="sessionTimeout" class="form-label">会话超时时间（分钟）</label>
+                                    <input type="number" class="form-control" id="sessionTimeout" value="60">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">密码策略</label>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="complexPassword" checked>
+                                        <label class="form-check-label" for="complexPassword">启用复杂密码</label>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="minPasswordLength" class="form-label">最小密码长度</label>
+                                    <input type="number" class="form-control" id="minPasswordLength" value="8">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="passwordExpiration" class="form-label">密码过期时间（天）</label>
+                                    <input type="number" class="form-control" id="passwordExpiration" value="90">
+                                </div>
+                                <button type="submit" class="btn btn-primary">保存设置</button>
+                            </form>
+                        </div>
+                        
+                        <!-- 消息通知 -->
+                        <div class="tab-pane fade" id="notification" role="tabpanel" aria-labelledby="notification-tab">
+                            <form>
+                                <div class="mb-3">
+                                    <label class="form-label">通知方式</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="emailNotify" checked>
+                                        <label class="form-check-label" for="emailNotify">
+                                            电子邮件通知
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="smsNotify" checked>
+                                        <label class="form-check-label" for="smsNotify">
+                                            短信通知
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="pushNotify" checked>
+                                        <label class="form-check-label" for="pushNotify">
+                                            APP推送通知
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">通知事件</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="loginNotify" checked>
+                                        <label class="form-check-label" for="loginNotify">
+                                            管理员登录通知
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="userChangeNotify" checked>
+                                        <label class="form-check-label" for="userChangeNotify">
+                                            用户信息变更通知
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="systemAlertNotify" checked>
+                                        <label class="form-check-label" for="systemAlertNotify">
+                                            系统告警通知
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="backupNotify" checked>
+                                        <label class="form-check-label" for="backupNotify">
+                                            备份状态通知
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="smtpServer" class="form-label">SMTP服务器</label>
+                                    <input type="text" class="form-control" id="smtpServer" value="smtp.example.com">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="smtpPort" class="form-label">SMTP端口</label>
+                                    <input type="number" class="form-control" id="smtpPort" value="587">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="smtpUsername" class="form-label">SMTP用户名</label>
+                                    <input type="text" class="form-control" id="smtpUsername" value="admin@fishvitallink.com">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="smtpPassword" class="form-label">SMTP密码</label>
+                                    <input type="password" class="form-control" id="smtpPassword" value="********">
+                                </div>
+                                <button type="submit" class="btn btn-primary">保存设置</button>
+                            </form>
+                        </div>
+                        
+                        <!-- 备份恢复 -->
+                        <div class="tab-pane fade" id="backup" role="tabpanel" aria-labelledby="backup-tab">
+                            <div class="mb-4">
+                                <h6>自动备份设置</h6>
+                                <form>
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="autoBackup" checked>
+                                            <label class="form-check-label" for="autoBackup">启用自动备份</label>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="backupFrequency" class="form-label">备份频率</label>
+                                        <select class="form-select" id="backupFrequency">
+                                            <option value="daily" selected>每天</option>
+                                            <option value="weekly">每周</option>
+                                            <option value="monthly">每月</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="backupTime" class="form-label">备份时间</label>
+                                        <input type="time" class="form-control" id="backupTime" value="03:00">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="backupRetention" class="form-label">保留备份数量</label>
+                                        <input type="number" class="form-control" id="backupRetention" value="30">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="backupLocation" class="form-label">备份存储路径</label>
+                                        <input type="text" class="form-control" id="backupLocation" value="/backup/database">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">保存设置</button>
+                                </form>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h6>手动备份</h6>
+                                <p>创建系统当前状态的完整备份。</p>
+                                <button class="btn btn-primary">立即备份</button>
+                            </div>
+                            
+                            <div>
+                                <h6>备份记录</h6>
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>备份ID</th>
+                                                <th>备份时间</th>
+                                                <th>类型</th>
+                                                <th>大小</th>
+                                                <th>状态</th>
+                                                <th>操作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>BK20240316</td>
+                                                <td>2024-03-16 03:00:15</td>
+                                                <td>自动</td>
+                                                <td>2.5 GB</td>
+                                                <td><span class="badge bg-success">成功</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary">下载</button>
+                                                    <button class="btn btn-sm btn-outline-success">恢复</button>
+                                                    <button class="btn btn-sm btn-outline-danger">删除</button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>BK20240315</td>
+                                                <td>2024-03-15 03:00:12</td>
+                                                <td>自动</td>
+                                                <td>2.4 GB</td>
+                                                <td><span class="badge bg-success">成功</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary">下载</button>
+                                                    <button class="btn btn-sm btn-outline-success">恢复</button>
+                                                    <button class="btn btn-sm btn-outline-danger">删除</button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>BK20240314-1</td>
+                                                <td>2024-03-14 15:30:45</td>
+                                                <td>手动</td>
+                                                <td>2.4 GB</td>
+                                                <td><span class="badge bg-success">成功</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary">下载</button>
+                                                    <button class="btn btn-sm btn-outline-success">恢复</button>
+                                                    <button class="btn btn-sm btn-outline-danger">删除</button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>BK20240314</td>
+                                                <td>2024-03-14 03:00:10</td>
+                                                <td>自动</td>
+                                                <td>2.4 GB</td>
+                                                <td><span class="badge bg-success">成功</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary">下载</button>
+                                                    <button class="btn btn-sm btn-outline-success">恢复</button>
+                                                    <button class="btn btn-sm btn-outline-danger">删除</button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 登录成功后显示主页面
+        function handleLogin() {
+            document.querySelector('.auth-container').style.display = 'none';
+            document.querySelector('.sidebar').style.display = 'block';
+            document.querySelector('.main-content').style.display = 'block';
+        }
+
+        // 切换页面
+        function switchPage(pageName) {
+            // 隐藏所有页面
+            document.querySelectorAll('.page-container').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // 显示目标页面
+            const targetPage = document.getElementById(pageName);
+            if (targetPage) {
+                targetPage.classList.add('active');
+            }
+            
+            // 更新侧边栏状态
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.page === pageName) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        // 侧边栏点击事件
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const targetPage = this.dataset.page;
+                if (targetPage) {
+                    switchPage(targetPage);
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

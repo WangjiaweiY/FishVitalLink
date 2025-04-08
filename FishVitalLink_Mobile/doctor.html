@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FishVitalLink - 医生端</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #1E88E5;
+            --primary-green: #4CAF50;
+            --accent-orange: #FF9800;
+            --bg-light: #F5F7FA;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-light);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 登录页面样式 */
+        .auth-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            z-index: 1000;
+        }
+
+        .auth-container.active {
+            display: block;
+        }
+
+        .auth-header {
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        .auth-logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 1rem;
+        }
+
+        .auth-title {
+            color: var(--primary-blue);
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .auth-form {
+            padding: 0 2rem;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 0.2rem rgba(30, 136, 229, 0.25);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-blue);
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+        }
+
+        /* 顶部导航栏 */
+        .navbar {
+            background-color: var(--primary-blue);
+            color: white;
+            padding: 1rem;
+        }
+
+        /* 底部导航栏 */
+        .nav-bottom {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+            padding: 8px 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .nav-item {
+            text-align: center;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .nav-item.active {
+            color: var(--primary-blue);
+        }
+
+        .nav-item i {
+            margin-bottom: 4px;
+        }
+
+        .nav-item div {
+            font-size: 12px;
+        }
+
+        /* 卡片样式 */
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+        }
+
+        /* 患者列表样式 */
+        .patient-list {
+            padding: 1rem;
+        }
+
+        .patient-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            background-color: white;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .patient-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 1rem;
+        }
+
+        .patient-info {
+            flex: 1;
+        }
+
+        .patient-name {
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+
+        .patient-status {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .patient-status.online {
+            color: var(--primary-green);
+        }
+
+        .patient-status.offline {
+            color: #999;
+        }
+
+        /* 问诊记录样式 */
+        .consultation-list {
+            padding: 1rem;
+        }
+
+        .consultation-item {
+            background-color: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .consultation-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .consultation-time {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .consultation-type {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .consultation-type.video {
+            background-color: rgba(30, 136, 229, 0.1);
+            color: var(--primary-blue);
+        }
+
+        .consultation-type.text {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: var(--primary-green);
+        }
+
+        /* 健康数据样式 */
+        .health-data {
+            padding: 1rem;
+        }
+
+        .data-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .data-title {
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: var(--primary-blue);
+        }
+
+        .data-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .data-unit {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* 远程问诊页面样式 */
+        .consultation-page {
+            padding: 1rem;
+            padding-bottom: 60px;
+        }
+
+        .consultation-header {
+            background-color: var(--primary-blue);
+            color: white;
+            padding: 1rem;
+            border-radius: 12px 12px 0 0;
+            margin-bottom: 1rem;
+        }
+
+        .consultation-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .consultation-status {
+            font-size: 0.9rem;
+        }
+
+        .consultation-video {
+            position: relative;
+            width: 100%;
+            background-color: #000;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .consultation-video-main {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background-color: #333;
+        }
+
+        .consultation-video-self {
+            position: absolute;
+            width: 30%;
+            aspect-ratio: 4/3;
+            background-color: #555;
+            right: 10px;
+            bottom: 10px;
+            border-radius: 8px;
+            border: 2px solid white;
+        }
+
+        .consultation-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .consultation-action-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            border: none;
+        }
+
+        .consultation-action-btn.mute {
+            background-color: #666;
+        }
+
+        .consultation-action-btn.video {
+            background-color: #666;
+        }
+
+        .consultation-action-btn.end {
+            background-color: #f44336;
+        }
+
+        .consultation-chat {
+            background-color: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .chat-message {
+            margin-bottom: 1rem;
+        }
+
+        .chat-message-self {
+            display: flex;
+            flex-direction: row-reverse;
+        }
+
+        .chat-message-content {
+            max-width: 80%;
+            padding: 0.75rem;
+            border-radius: 12px;
+        }
+
+        .chat-message-self .chat-message-content {
+            background-color: var(--primary-blue);
+            color: white;
+            border-radius: 12px 0 12px 12px;
+        }
+
+        .chat-message-other .chat-message-content {
+            background-color: #f1f1f1;
+            color: #333;
+            border-radius: 0 12px 12px 12px;
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+        }
+
+        .chat-send-btn {
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 页面容器样式 */
+        .page-container {
+            display: none;
+            padding-bottom: 60px;
+        }
+
+        .page-container.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- 登录页面 -->
+    <div class="auth-container active">
+        <div class="auth-header">
+            <img src="logo.png" alt="FishVitalLink" class="auth-logo">
+            <h1 class="auth-title">FishVitalLink - 医生端</h1>
+        </div>
+        
+        <div class="auth-form">
+            <div class="mb-3">
+                <input type="text" class="form-control" id="loginUsername" placeholder="医生工号">
+            </div>
+            <div class="mb-3">
+                <input type="password" class="form-control" id="loginPassword" placeholder="密码">
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="rememberMe">
+                    <label class="form-check-label" for="rememberMe">记住我</label>
+                </div>
+                <a href="#" class="text-decoration-none">忘记密码？</a>
+            </div>
+            <button class="btn btn-primary btn-block" onclick="handleLogin()">登录</button>
+        </div>
+    </div>
+
+    <!-- 主页面内容 -->
+    <div class="main-content page-container">
+        <!-- 顶部导航栏 -->
+        <nav class="navbar">
+            <div class="container">
+                <span class="navbar-brand mb-0 h1">FishVitalLink</span>
+                <div class="d-flex align-items-center">
+                    <i class="mdi mdi-bell-outline" style="font-size: 24px; margin-right: 1rem;"></i>
+                    <i class="mdi mdi-account-circle" style="font-size: 24px;"></i>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 主要内容区域 -->
+        <div class="container mt-4">
+            <!-- 今日问诊统计 -->
+            <div class="row">
+                <div class="col-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <div class="data-value">12</div>
+                            <div class="data-unit">今日问诊</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <div class="data-value">8</div>
+                            <div class="data-unit">等待中</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <div class="data-value">4.8</div>
+                            <div class="data-unit">平均评分</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 等待问诊患者列表 -->
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">等待问诊</h5>
+                    <div class="patient-list">
+                        <div class="patient-item">
+                            <img src="avatar1.jpg" alt="患者头像" class="patient-avatar">
+                            <div class="patient-info">
+                                <div class="patient-name">张三</div>
+                                <div class="patient-status online">等待视频问诊</div>
+                            </div>
+                            <button class="btn btn-primary">接诊</button>
+                        </div>
+                        <div class="patient-item">
+                            <img src="avatar2.jpg" alt="患者头像" class="patient-avatar">
+                            <div class="patient-info">
+                                <div class="patient-name">李四</div>
+                                <div class="patient-status online">等待图文问诊</div>
+                            </div>
+                            <button class="btn btn-primary">接诊</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 今日问诊记录 -->
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">今日问诊记录</h5>
+                    <div class="consultation-list">
+                        <div class="consultation-item">
+                            <div class="consultation-header">
+                                <div class="consultation-time">09:30 - 10:00</div>
+                                <span class="consultation-type video">视频问诊</span>
+                            </div>
+                            <div class="patient-name">王五</div>
+                            <div class="patient-status">已完成</div>
+                        </div>
+                        <div class="consultation-item">
+                            <div class="consultation-header">
+                                <div class="consultation-time">10:30 - 11:00</div>
+                                <span class="consultation-type text">图文问诊</span>
+                            </div>
+                            <div class="patient-name">赵六</div>
+                            <div class="patient-status">已完成</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 患者管理页面 -->
+    <div class="patient-page page-container">
+        <div class="container mt-4">
+            <!-- 搜索栏 -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="搜索患者姓名/ID">
+                        <button class="btn btn-primary">
+                            <i class="mdi mdi-magnify"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 患者列表 -->
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">我的患者</h5>
+                    <div class="patient-list">
+                        <div class="patient-item">
+                            <img src="avatar1.jpg" alt="患者头像" class="patient-avatar">
+                            <div class="patient-info">
+                                <div class="patient-name">张三</div>
+                                <div class="patient-status">上次问诊：2024-03-15</div>
+                            </div>
+                            <button class="btn btn-primary">查看</button>
+                        </div>
+                        <div class="patient-item">
+                            <img src="avatar2.jpg" alt="患者头像" class="patient-avatar">
+                            <div class="patient-info">
+                                <div class="patient-name">李四</div>
+                                <div class="patient-status">上次问诊：2024-03-14</div>
+                            </div>
+                            <button class="btn btn-primary">查看</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 远程问诊页面 -->
+    <div class="consultation-page page-container">
+        <div class="consultation-header">
+            <div class="consultation-title">与张三的视频问诊</div>
+            <div class="consultation-status">已连接 - 持续时间: 00:05:23</div>
+        </div>
+
+        <div class="consultation-video">
+            <div class="consultation-video-main"></div>
+            <div class="consultation-video-self"></div>
+        </div>
+
+        <div class="consultation-actions">
+            <button class="consultation-action-btn mute">
+                <i class="mdi mdi-microphone-off"></i>
+            </button>
+            <button class="consultation-action-btn video">
+                <i class="mdi mdi-video-off"></i>
+            </button>
+            <button class="consultation-action-btn end">
+                <i class="mdi mdi-phone-hangup"></i>
+            </button>
+        </div>
+
+        <div class="consultation-chat">
+            <div class="chat-message chat-message-other">
+                <div class="chat-message-content">
+                    您好，请问有什么不舒服的症状？
+                </div>
+            </div>
+            <div class="chat-message chat-message-self">
+                <div class="chat-message-content">
+                    医生您好，我最近总是感觉胸闷气短，特别是上楼梯的时候。
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-input-container">
+            <input type="text" class="chat-input" placeholder="请输入消息...">
+            <button class="chat-send-btn">
+                <i class="mdi mdi-send"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- 底部导航栏 -->
+    <nav class="nav-bottom">
+        <div class="row">
+            <div class="col-3 nav-item active" data-page="main-content">
+                <i class="mdi mdi-home" style="font-size: 22px;"></i>
+                <div>首页</div>
+            </div>
+            <div class="col-3 nav-item" data-page="patient-page">
+                <i class="mdi mdi-account-group" style="font-size: 22px;"></i>
+                <div>患者</div>
+            </div>
+            <div class="col-3 nav-item" data-page="consultation-page">
+                <i class="mdi mdi-video" style="font-size: 22px;"></i>
+                <div>问诊</div>
+            </div>
+            <div class="col-3 nav-item" data-page="profile-page">
+                <i class="mdi mdi-account" style="font-size: 22px;"></i>
+                <div>我的</div>
+            </div>
+        </div>
+    </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 切换页面
+        function switchPage(pageName) {
+            // 隐藏所有页面
+            document.querySelectorAll('.page-container').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // 显示目标页面
+            const targetPage = document.querySelector(`.${pageName}`);
+            if (targetPage) {
+                targetPage.classList.add('active');
+            }
+            
+            // 更新底部导航栏状态
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.page === pageName) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        // 登录成功后显示主页面
+        function handleLogin() {
+            document.querySelector('.auth-container').style.display = 'none';
+            switchPage('main-content');
+        }
+
+        // 底部导航栏点击事件
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const targetPage = this.dataset.page;
+                switchPage(targetPage);
+            });
+        });
+
+        // 接诊按钮点击事件
+        document.querySelectorAll('.patient-item .btn-primary').forEach(btn => {
+            btn.addEventListener('click', function() {
+                switchPage('consultation-page');
+            });
+        });
+
+        // 控制按钮状态
+        document.querySelectorAll('.consultation-action-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.classList.contains('mute')) {
+                    this.classList.toggle('active');
+                    const icon = this.querySelector('i');
+                    if (this.classList.contains('active')) {
+                        icon.className = 'mdi mdi-microphone';
+                    } else {
+                        icon.className = 'mdi mdi-microphone-off';
+                    }
+                } else if (this.classList.contains('video')) {
+                    this.classList.toggle('active');
+                    const icon = this.querySelector('i');
+                    if (this.classList.contains('active')) {
+                        icon.className = 'mdi mdi-video';
+                    } else {
+                        icon.className = 'mdi mdi-video-off';
+                    }
+                } else if (this.classList.contains('end')) {
+                    switchPage('main-content');
+                }
+            });
+        });
+
+        // 发送聊天消息
+        document.querySelector('.chat-send-btn').addEventListener('click', function() {
+            const input = document.querySelector('.chat-input');
+            const message = input.value.trim();
+            
+            if (message) {
+                const chatContainer = document.querySelector('.consultation-chat');
+                const newMessage = document.createElement('div');
+                newMessage.className = 'chat-message chat-message-self';
+                newMessage.innerHTML = `
+                    <div class="chat-message-content">
+                        ${message}
+                    </div>
+                `;
+                chatContainer.appendChild(newMessage);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                input.value = '';
+            }
+        });
+
+        document.querySelector('.chat-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.querySelector('.chat-send-btn').click();
+            }
+        });
+    </script>
+</body>
+</html> 

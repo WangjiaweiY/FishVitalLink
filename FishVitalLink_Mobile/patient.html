@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FishVitalLink - 患者端</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #1E88E5;
+            --primary-green: #4CAF50;
+            --accent-orange: #FF9800;
+            --bg-light: #F5F7FA;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-light);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 登录/注册页面样式 */
+        .auth-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            z-index: 1000;
+        }
+
+        .auth-container.active {
+            display: block;
+        }
+
+        .auth-header {
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        .auth-logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 1rem;
+        }
+
+        .auth-title {
+            color: var(--primary-blue);
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .auth-form {
+            padding: 0 2rem;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 0.2rem rgba(30, 136, 229, 0.25);
+        }
+
+        .auth-switch {
+            text-align: center;
+            margin-top: 1rem;
+            color: #666;
+        }
+
+        .auth-switch a {
+            color: var(--primary-blue);
+            text-decoration: none;
+        }
+
+        .auth-actions {
+            margin-top: 2rem;
+        }
+
+        .btn-block {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1rem;
+        }
+
+        .social-login {
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .social-login-title {
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+
+        .navbar {
+            background-color: var(--primary-blue);
+            color: white;
+            padding: 1rem;
+        }
+
+        .nav-bottom {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+            padding: 8px 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .nav-item {
+            text-align: center;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .nav-item.active {
+            color: var(--primary-blue);
+        }
+
+        .nav-item i {
+            margin-bottom: 4px;
+        }
+
+        .nav-item div {
+            font-size: 12px;
+        }
+
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-blue);
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1.5rem;
+        }
+
+        .btn-success {
+            background-color: var(--primary-green);
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1.5rem;
+        }
+
+        .health-metric {
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-blue);
+        }
+
+        .metric-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .warning {
+            color: var(--accent-orange);
+        }
+
+        /* 表单验证样式 */
+        .form-control.is-invalid {
+            border-color: #dc3545;
+        }
+
+        .invalid-feedback {
+            display: none;
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .form-control.is-invalid ~ .invalid-feedback {
+            display: block;
+        }
+
+        /* 加载动画 */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 提示消息 */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+        }
+
+        .toast {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .toast.success {
+            border-left: 4px solid var(--primary-green);
+        }
+
+        .toast.error {
+            border-left: 4px solid #dc3545;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* 验证码按钮样式 */
+        .verification-btn {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            border: none;
+            background: none;
+            color: var(--primary-blue);
+            font-size: 0.875rem;
+        }
+
+        .verification-btn:disabled {
+            color: #999;
+        }
+
+        /* 输入框组样式 */
+        .input-group {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .input-group input {
+            padding-right: 100px;
+        }
+
+        /* 个人中心页面样式 */
+        .profile-header {
+            background-color: var(--primary-blue);
+            color: white;
+            padding: 2rem 1rem;
+            text-align: center;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 1rem;
+            border: 3px solid white;
+        }
+
+        .profile-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-info {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+
+        .menu-list {
+            background-color: white;
+            border-radius: 12px;
+            margin: 1rem;
+            overflow: hidden;
+        }
+
+        .menu-item {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            color: #333;
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .menu-icon {
+            margin-right: 1rem;
+            color: var(--primary-blue);
+        }
+
+        /* 健康数据录入页面样式 */
+        .data-entry-page {
+            padding: 1rem;
+        }
+
+        .data-entry-card {
+            margin-bottom: 1rem;
+            padding: 1rem;
+        }
+
+        .data-entry-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+        }
+
+        .data-entry-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .data-entry-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .data-entry-label {
+            flex: 1;
+            color: #666;
+        }
+
+        .data-entry-input {
+            flex: 2;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .data-entry-unit {
+            color: #666;
+            min-width: 40px;
+        }
+
+        .data-entry-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 1rem;
+        }
+
+        .data-entry-btn {
+            padding: 0.5rem 1rem;
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+
+        /* 问诊预约页面样式 */
+        .appointment-page {
+            padding: 1rem;
+            padding-bottom: 60px; /* 为底部导航栏留出空间 */
+        }
+
+        .appointment-container {
+            padding: 1rem;
+        }
+
+        .doctor-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .doctor-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-right: 1rem;
+        }
+
+        .doctor-info {
+            flex: 1;
+        }
+
+        .doctor-name {
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+
+        .doctor-specialty {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .doctor-rating {
+            color: var(--accent-orange);
+            font-size: 0.9rem;
+        }
+
+        .time-slot {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            margin: 0.25rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .time-slot.selected {
+            background-color: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+        }
+
+        .time-slot.disabled {
+            background-color: #f5f5f5;
+            color: #999;
+            border-color: #eee;
+            cursor: not-allowed;
+        }
+
+        .time-slots {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        /* 图表展示页面样式 */
+        .chart-container {
+            padding: 1rem;
+        }
+
+        .chart-card {
+            margin-bottom: 1rem;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--primary-blue);
+        }
+
+        .chart-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chart-action-btn {
+            padding: 0.25rem 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: none;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .chart-action-btn.active {
+            background-color: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+        }
+
+        .chart-wrapper {
+            height: 250px;
+            margin-bottom: 1rem;
+        }
+
+        .chart-tabs {
+            display: flex;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 1rem;
+        }
+
+        .chart-tab {
+            padding: 0.5rem 1rem;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .chart-tab.active {
+            color: var(--primary-blue);
+            border-bottom: 2px solid var(--primary-blue);
+        }
+
+        /* 页面容器样式 */
+        .page-container {
+            display: none;
+            padding-bottom: 60px; /* 为底部导航栏留出空间 */
+        }
+
+        .page-container.active {
+            display: block;
+        }
+
+        /* 远程问诊页面样式 */
+        .consultation-page {
+            padding: 1rem;
+            padding-bottom: 60px;
+        }
+
+        .consultation-header {
+            background-color: var(--primary-blue);
+            color: white;
+            padding: 1rem;
+            border-radius: 12px 12px 0 0;
+            margin-bottom: 1rem;
+        }
+
+        .consultation-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .consultation-status {
+            font-size: 0.9rem;
+        }
+
+        .consultation-video {
+            position: relative;
+            width: 100%;
+            background-color: #000;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .consultation-video-main {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background-color: #333;
+        }
+
+        .consultation-video-self {
+            position: absolute;
+            width: 30%;
+            aspect-ratio: 4/3;
+            background-color: #555;
+            right: 10px;
+            bottom: 10px;
+            border-radius: 8px;
+            border: 2px solid white;
+        }
+
+        .consultation-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .consultation-action-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            border: none;
+        }
+
+        .consultation-action-btn.mute {
+            background-color: #666;
+        }
+
+        .consultation-action-btn.video {
+            background-color: #666;
+        }
+
+        .consultation-action-btn.end {
+            background-color: #f44336;
+        }
+
+        .consultation-chat {
+            background-color: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .chat-message {
+            margin-bottom: 1rem;
+        }
+
+        .chat-message-self {
+            display: flex;
+            flex-direction: row-reverse;
+        }
+
+        .chat-message-content {
+            max-width: 80%;
+            padding: 0.75rem;
+            border-radius: 12px;
+        }
+
+        .chat-message-self .chat-message-content {
+            background-color: var(--primary-blue);
+            color: white;
+            border-radius: 12px 0 12px 12px;
+        }
+
+        .chat-message-other .chat-message-content {
+            background-color: #f1f1f1;
+            color: #333;
+            border-radius: 0 12px 12px 12px;
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+        }
+
+        .chat-send-btn {
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 底部导航栏调整 */
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            color: #666;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- 登录/注册页面 -->
+    <div class="auth-container active">
+        <div class="auth-header">
+            <img src="logo.png" alt="FishVitalLink" class="auth-logo">
+            <h1 class="auth-title">FishVitalLink</h1>
+        </div>
+        
+        <!-- 登录表单 -->
+        <div class="auth-form" id="loginForm">
+            <div class="mb-3">
+                <input type="text" class="form-control" id="loginUsername" placeholder="手机号/邮箱" required>
+                <div class="invalid-feedback">请输入正确的手机号或邮箱</div>
+            </div>
+            <div class="mb-3">
+                <input type="password" class="form-control" id="loginPassword" placeholder="密码" required>
+                <div class="invalid-feedback">密码不能为空</div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="rememberMe">
+                    <label class="form-check-label" for="rememberMe">记住我</label>
+                </div>
+                <a href="#" class="text-decoration-none">忘记密码？</a>
+            </div>
+            <div class="auth-actions">
+                <button class="btn btn-primary btn-block" onclick="handleLogin()">登录</button>
+            </div>
+            <div class="auth-switch">
+                还没有账号？<a href="#" onclick="switchToRegister()">立即注册</a>
+            </div>
+            <div class="social-login">
+                <div class="social-login-title">其他登录方式</div>
+                <div class="social-icons">
+                    <div class="social-icon">
+                        <i class="mdi mdi-wechat"></i>
+                    </div>
+                    <div class="social-icon">
+                        <i class="mdi mdi-qqchat"></i>
+                    </div>
+                    <div class="social-icon">
+                        <i class="mdi mdi-phone"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 注册表单 -->
+        <div class="auth-form" id="registerForm" style="display: none;">
+            <div class="mb-3">
+                <input type="text" class="form-control" id="registerPhone" placeholder="手机号" required>
+                <div class="invalid-feedback">请输入正确的手机号</div>
+            </div>
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" id="verificationCode" placeholder="验证码" required>
+                <button class="verification-btn" id="getCodeBtn" onclick="getVerificationCode()">获取验证码</button>
+                <div class="invalid-feedback">请输入验证码</div>
+            </div>
+            <div class="mb-3">
+                <input type="password" class="form-control" id="registerPassword" placeholder="设置密码" required>
+                <div class="invalid-feedback">密码长度至少6位</div>
+            </div>
+            <div class="mb-3">
+                <input type="password" class="form-control" id="confirmPassword" placeholder="确认密码" required>
+                <div class="invalid-feedback">两次输入的密码不一致</div>
+            </div>
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="agreeTerms">
+                <label class="form-check-label" for="agreeTerms">
+                    我已阅读并同意<a href="#">用户协议</a>和<a href="#">隐私政策</a>
+                </label>
+            </div>
+            <div class="auth-actions">
+                <button class="btn btn-primary btn-block" onclick="handleRegister()">注册</button>
+            </div>
+            <div class="auth-switch">
+                已有账号？<a href="#" onclick="switchToLogin()">立即登录</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载动画 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- 提示消息容器 -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- 主页面内容 -->
+    <div class="main-content page-container">
+        <!-- 顶部导航栏 -->
+        <nav class="navbar">
+            <div class="container">
+                <span class="navbar-brand mb-0 h1">FishVitalLink</span>
+                <div class="d-flex align-items-center">
+                    <i class="mdi mdi-bell-outline" style="font-size: 24px; margin-right: 1rem;"></i>
+                    <i class="mdi mdi-account-circle" style="font-size: 24px;"></i>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 主要内容区域 -->
+        <div class="container mt-4 mb-5">
+            <!-- 健康数据概览 -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">今日健康数据</h5>
+                            <div class="row">
+                                <div class="col-4 health-metric">
+                                    <div class="metric-value">8,256</div>
+                                    <div class="metric-label">步数</div>
+                                </div>
+                                <div class="col-4 health-metric">
+                                    <div class="metric-value">72</div>
+                                    <div class="metric-label">心率</div>
+                                </div>
+                                <div class="col-4 health-metric">
+                                    <div class="metric-value">7.5</div>
+                                    <div class="metric-label">睡眠(小时)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 健康趋势图表 -->
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">健康趋势</h5>
+                            <div id="healthChart" style="height: 200px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 快速操作区 -->
+            <div class="row mt-3">
+                <div class="col-6">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <i class="mdi mdi-plus-circle" style="font-size: 2rem; color: var(--primary-blue);"></i>
+                            <h6 class="mt-2">记录健康数据</h6>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <i class="mdi mdi-doctor" style="font-size: 2rem; color: var(--primary-green);"></i>
+                            <h6 class="mt-2">预约问诊</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 个人中心页面 -->
+    <div class="profile-page page-container">
+        <div class="profile-header">
+            <img src="avatar.png" alt="用户头像" class="profile-avatar">
+            <div class="profile-name">张三</div>
+            <div class="profile-info">ID: 10086 | 普通会员</div>
+        </div>
+        <div class="menu-list">
+            <div class="menu-item">
+                <i class="mdi mdi-account-circle menu-icon"></i>
+                个人资料
+            </div>
+            <div class="menu-item">
+                <i class="mdi mdi-lock menu-icon"></i>
+                账号安全
+            </div>
+            <div class="menu-item">
+                <i class="mdi mdi-heart menu-icon"></i>
+                健康档案
+            </div>
+            <div class="menu-item">
+                <i class="mdi mdi-bell menu-icon"></i>
+                消息通知
+            </div>
+            <div class="menu-item">
+                <i class="mdi mdi-help-circle menu-icon"></i>
+                帮助中心
+            </div>
+            <div class="menu-item">
+                <i class="mdi mdi-logout menu-icon"></i>
+                退出登录
+            </div>
+        </div>
+    </div>
+
+    <!-- 健康数据录入页面 -->
+    <div class="data-entry-page page-container">
+        <div class="data-entry-card">
+            <div class="data-entry-title">健康数据录入</div>
+            <div class="data-entry-form">
+                <div class="data-entry-item">
+                    <div class="data-entry-label">步数</div>
+                    <input type="number" class="data-entry-input" placeholder="请输入今日步数">
+                    <div class="data-entry-unit">步</div>
+                </div>
+                <div class="data-entry-item">
+                    <div class="data-entry-label">心率</div>
+                    <input type="number" class="data-entry-input" placeholder="请输入心率">
+                    <div class="data-entry-unit">次/分</div>
+                </div>
+                <div class="data-entry-item">
+                    <div class="data-entry-label">收缩压</div>
+                    <input type="number" class="data-entry-input" placeholder="请输入收缩压">
+                    <div class="data-entry-unit">mmHg</div>
+                </div>
+                <div class="data-entry-item">
+                    <div class="data-entry-label">舒张压</div>
+                    <input type="number" class="data-entry-input" placeholder="请输入舒张压">
+                    <div class="data-entry-unit">mmHg</div>
+                </div>
+                <div class="data-entry-item">
+                    <div class="data-entry-label">睡眠时长</div>
+                    <input type="number" class="data-entry-input" placeholder="请输入睡眠时长">
+                    <div class="data-entry-unit">小时</div>
+                </div>
+            </div>
+            <div class="data-entry-actions">
+                <button class="data-entry-btn">保存数据</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 问诊预约页面 -->
+    <div class="appointment-page page-container">
+        <div class="appointment-container">
+            <div class="doctor-card">
+                <div class="d-flex align-items-center">
+                    <img src="doctor1.jpg" alt="医生头像" class="doctor-avatar">
+                    <div class="doctor-info">
+                        <div class="doctor-name">李医生</div>
+                        <div class="doctor-specialty">心血管内科 | 主任医师</div>
+                        <div class="doctor-rating">
+                            <i class="mdi mdi-star"></i>
+                            <i class="mdi mdi-star"></i>
+                            <i class="mdi mdi-star"></i>
+                            <i class="mdi mdi-star"></i>
+                            <i class="mdi mdi-star-half"></i>
+                            4.5
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">选择问诊时间</h5>
+                    <div class="time-slots">
+                        <div class="time-slot">09:00</div>
+                        <div class="time-slot">09:30</div>
+                        <div class="time-slot disabled">10:00</div>
+                        <div class="time-slot">10:30</div>
+                        <div class="time-slot">11:00</div>
+                        <div class="time-slot">11:30</div>
+                        <div class="time-slot">14:00</div>
+                        <div class="time-slot">14:30</div>
+                        <div class="time-slot">15:00</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">问诊类型</h5>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="consultType" id="type1" checked>
+                        <label class="form-check-label" for="type1">
+                            图文问诊
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="consultType" id="type2">
+                        <label class="form-check-label" for="type2">
+                            视频问诊
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">病情描述</h5>
+                    <textarea class="form-control" rows="4" placeholder="请详细描述您的症状、持续时间等信息"></textarea>
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-block mt-3">确认预约</button>
+        </div>
+    </div>
+
+    <!-- 数据图表展示页面 -->
+    <div class="chart-page" style="display: none;">
+        <div class="chart-container">
+            <!-- 图表标签页 -->
+            <div class="chart-tabs">
+                <div class="chart-tab active" data-chart="steps">步数</div>
+                <div class="chart-tab" data-chart="heart">心率</div>
+                <div class="chart-tab" data-chart="sleep">睡眠</div>
+                <div class="chart-tab" data-chart="blood">血压</div>
+            </div>
+
+            <!-- 步数图表 -->
+            <div class="chart-card" id="stepsChart">
+                <div class="chart-header">
+                    <div class="chart-title">步数趋势</div>
+                    <div class="chart-actions">
+                        <button class="chart-action-btn active" data-period="week">周</button>
+                        <button class="chart-action-btn" data-period="month">月</button>
+                        <button class="chart-action-btn" data-period="year">年</button>
+                    </div>
+                </div>
+                <div class="chart-wrapper" id="stepsChartContainer"></div>
+            </div>
+
+            <!-- 心率图表 -->
+            <div class="chart-card" id="heartChart" style="display: none;">
+                <div class="chart-header">
+                    <div class="chart-title">心率趋势</div>
+                    <div class="chart-actions">
+                        <button class="chart-action-btn active" data-period="week">周</button>
+                        <button class="chart-action-btn" data-period="month">月</button>
+                        <button class="chart-action-btn" data-period="year">年</button>
+                    </div>
+                </div>
+                <div class="chart-wrapper" id="heartChartContainer"></div>
+            </div>
+
+            <!-- 睡眠图表 -->
+            <div class="chart-card" id="sleepChart" style="display: none;">
+                <div class="chart-header">
+                    <div class="chart-title">睡眠质量</div>
+                    <div class="chart-actions">
+                        <button class="chart-action-btn active" data-period="week">周</button>
+                        <button class="chart-action-btn" data-period="month">月</button>
+                        <button class="chart-action-btn" data-period="year">年</button>
+                    </div>
+                </div>
+                <div class="chart-wrapper" id="sleepChartContainer"></div>
+            </div>
+
+            <!-- 血压图表 -->
+            <div class="chart-card" id="bloodChart" style="display: none;">
+                <div class="chart-header">
+                    <div class="chart-title">血压趋势</div>
+                    <div class="chart-actions">
+                        <button class="chart-action-btn active" data-period="week">周</button>
+                        <button class="chart-action-btn" data-period="month">月</button>
+                        <button class="chart-action-btn" data-period="year">年</button>
+                    </div>
+                </div>
+                <div class="chart-wrapper" id="bloodChartContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 远程问诊页面 -->
+    <div class="consultation-page page-container">
+        <div class="consultation-header">
+            <div class="consultation-title">与李医生的视频问诊</div>
+            <div class="consultation-status">已连接 - 持续时间: 00:05:23</div>
+        </div>
+
+        <div class="consultation-video">
+            <div class="consultation-video-main"></div>
+            <div class="consultation-video-self"></div>
+        </div>
+
+        <div class="consultation-actions">
+            <button class="consultation-action-btn mute">
+                <i class="mdi mdi-microphone-off"></i>
+            </button>
+            <button class="consultation-action-btn video">
+                <i class="mdi mdi-video-off"></i>
+            </button>
+            <button class="consultation-action-btn end">
+                <i class="mdi mdi-phone-hangup"></i>
+            </button>
+        </div>
+
+        <div class="consultation-chat">
+            <div class="chat-message chat-message-other">
+                <div class="chat-message-content">
+                    您好，请问有什么不舒服的症状？
+                </div>
+            </div>
+            <div class="chat-message chat-message-self">
+                <div class="chat-message-content">
+                    医生您好，我最近总是感觉胸闷气短，特别是上楼梯的时候。
+                </div>
+            </div>
+            <div class="chat-message chat-message-other">
+                <div class="chat-message-content">
+                    好的，这种情况持续多久了？最近有做过体检吗？
+                </div>
+            </div>
+            <div class="chat-message chat-message-self">
+                <div class="chat-message-content">
+                    大概半个月了，越来越明显。上个月做过一次体检，血压有点偏高，130/85。
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-input-container">
+            <input type="text" class="chat-input" placeholder="请输入消息...">
+            <button class="chat-send-btn">
+                <i class="mdi mdi-send"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- 底部导航栏 -->
+    <nav class="nav-bottom">
+        <div class="row">
+            <div class="col-3 nav-item active" data-page="main-content">
+                <i class="mdi mdi-home" style="font-size: 22px;"></i>
+                <div>首页</div>
+            </div>
+            <div class="col-3 nav-item" data-page="data-entry-page">
+                <i class="mdi mdi-chart-line" style="font-size: 22px;"></i>
+                <div>健康数据</div>
+            </div>
+            <div class="col-3 nav-item" data-page="consultation-page">
+                <i class="mdi mdi-video" style="font-size: 22px;"></i>
+                <div>远程问诊</div>
+            </div>
+            <div class="col-3 nav-item" data-page="profile-page">
+                <i class="mdi mdi-account" style="font-size: 22px;"></i>
+                <div>我的</div>
+            </div>
+        </div>
+    </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script>
+        // 切换登录/注册表单
+        function switchToRegister() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+        }
+
+        function switchToLogin() {
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+        }
+
+        // 切换页面
+        function switchPage(pageName) {
+            // 隐藏所有页面
+            document.querySelectorAll('.page-container').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // 显示目标页面
+            const targetPage = document.querySelector(`.${pageName}`);
+            if (targetPage) {
+                targetPage.classList.add('active');
+            }
+            
+            // 更新底部导航栏状态
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.page === pageName) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        // 登录成功后显示主页面
+        function showMainContent() {
+            document.querySelector('.auth-container').style.display = 'none';
+            switchPage('main-content');
+        }
+
+        // 初始化健康趋势图表
+        var chartDom = document.getElementById('healthChart');
+        var myChart = echarts.init(chartDom);
+        var option = {
+            tooltip: {
+                trigger: 'axis'
+            },
+            xAxis: {
+                type: 'category',
+                data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+            },
+            yAxis: {
+                type: 'value'
+            },
+            series: [{
+                data: [8200, 9320, 9010, 9340, 12900, 1330, 1320],
+                type: 'line',
+                smooth: true,
+                itemStyle: {
+                    color: '#1E88E5'
+                }
+            }]
+        };
+        myChart.setOption(option);
+
+        // 显示加载动画
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        // 隐藏加载动画
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        // 显示提示消息
+        function showToast(message, type = 'success') {
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <i class="mdi mdi-${type === 'success' ? 'check-circle' : 'alert-circle'}" 
+                   style="color: ${type === 'success' ? 'var(--primary-green)' : '#dc3545'}; 
+                          margin-right: 0.5rem;"></i>
+                ${message}
+            `;
+            toastContainer.appendChild(toast);
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // 获取验证码
+        function getVerificationCode() {
+            const phone = document.getElementById('registerPhone').value;
+            if (!/^1[3-9]\d{9}$/.test(phone)) {
+                showToast('请输入正确的手机号', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('getCodeBtn');
+            btn.disabled = true;
+            let countdown = 60;
+            
+            const timer = setInterval(() => {
+                btn.textContent = `${countdown}秒后重试`;
+                countdown--;
+                if (countdown < 0) {
+                    clearInterval(timer);
+                    btn.disabled = false;
+                    btn.textContent = '获取验证码';
+                }
+            }, 1000);
+
+            // 模拟发送验证码
+            showLoading();
+            setTimeout(() => {
+                hideLoading();
+                showToast('验证码已发送');
+            }, 1000);
+        }
+
+        // 处理登录
+        function handleLogin() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!username || !password) {
+                showToast('请填写完整信息', 'error');
+                return;
+            }
+
+            showLoading();
+            // 模拟登录请求
+            setTimeout(() => {
+                hideLoading();
+                showToast('登录成功');
+                showMainContent();
+            }, 1500);
+        }
+
+        // 处理注册
+        function handleRegister() {
+            const phone = document.getElementById('registerPhone').value;
+            const code = document.getElementById('verificationCode').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (!phone || !code || !password || !confirmPassword) {
+                showToast('请填写完整信息', 'error');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showToast('两次输入的密码不一致', 'error');
+                return;
+            }
+
+            showLoading();
+            // 模拟注册请求
+            setTimeout(() => {
+                hideLoading();
+                showToast('注册成功');
+                switchToLogin();
+            }, 1500);
+        }
+
+        // 表单验证
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('blur', function() {
+                if (this.id === 'loginUsername') {
+                    validateUsername(this);
+                } else if (this.id === 'registerPhone') {
+                    validatePhone(this);
+                } else if (this.id === 'registerPassword') {
+                    validatePassword(this);
+                } else if (this.id === 'confirmPassword') {
+                    validateConfirmPassword(this);
+                }
+            });
+        });
+
+        function validateUsername(input) {
+            const value = input.value;
+            const isValid = /^1[3-9]\d{9}$/.test(value) || /^[\w-]+(\.[\w-]+)*@[\w-]+(\.[\w-]+)+$/.test(value);
+            input.classList.toggle('is-invalid', !isValid);
+        }
+
+        function validatePhone(input) {
+            const value = input.value;
+            const isValid = /^1[3-9]\d{9}$/.test(value);
+            input.classList.toggle('is-invalid', !isValid);
+        }
+
+        function validatePassword(input) {
+            const value = input.value;
+            const isValid = value.length >= 6;
+            input.classList.toggle('is-invalid', !isValid);
+        }
+
+        function validateConfirmPassword(input) {
+            const password = document.getElementById('registerPassword').value;
+            const isValid = input.value === password;
+            input.classList.toggle('is-invalid', !isValid);
+        }
+
+        // 底部导航栏点击事件
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const targetPage = this.dataset.page;
+                switchPage(targetPage);
+            });
+        });
+
+        // 快速操作区点击事件
+        document.querySelector('.mdi-plus-circle').closest('.card').addEventListener('click', function() {
+            switchPage('data-entry-page');
+        });
+
+        document.querySelector('.mdi-doctor').closest('.card').addEventListener('click', function() {
+            switchPage('appointment-page');
+        });
+
+        // 时间槽选择事件
+        document.querySelectorAll('.time-slot:not(.disabled)').forEach(slot => {
+            slot.addEventListener('click', function() {
+                document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+
+        // 初始化图表
+        function initCharts() {
+            // 步数图表
+            const stepsChart = echarts.init(document.getElementById('stepsChartContainer'));
+            stepsChart.setOption({
+                tooltip: {
+                    trigger: 'axis'
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '步数'
+                },
+                series: [{
+                    data: [8200, 9320, 9010, 9340, 12900, 1330, 1320],
+                    type: 'line',
+                    smooth: true,
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                            offset: 0,
+                            color: 'rgba(30, 136, 229, 0.3)'
+                        }, {
+                            offset: 1,
+                            color: 'rgba(30, 136, 229, 0.1)'
+                        }])
+                    },
+                    itemStyle: {
+                        color: '#1E88E5'
+                    }
+                }]
+            });
+
+            // 心率图表
+            const heartChart = echarts.init(document.getElementById('heartChartContainer'));
+            heartChart.setOption({
+                tooltip: {
+                    trigger: 'axis'
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '心率(次/分)'
+                },
+                series: [{
+                    data: [72, 75, 70, 68, 73, 71, 69],
+                    type: 'line',
+                    smooth: true,
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                            offset: 0,
+                            color: 'rgba(76, 175, 80, 0.3)'
+                        }, {
+                            offset: 1,
+                            color: 'rgba(76, 175, 80, 0.1)'
+                        }])
+                    },
+                    itemStyle: {
+                        color: '#4CAF50'
+                    }
+                }]
+            });
+
+            // 睡眠图表
+            const sleepChart = echarts.init(document.getElementById('sleepChartContainer'));
+            sleepChart.setOption({
+                tooltip: {
+                    trigger: 'axis'
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '睡眠时间(小时)'
+                },
+                series: [{
+                    data: [7.5, 8, 7, 7.5, 6.5, 8.5, 7],
+                    type: 'bar',
+                    itemStyle: {
+                        color: '#FF9800'
+                    }
+                }]
+            });
+
+            // 血压图表
+            const bloodChart = echarts.init(document.getElementById('bloodChartContainer'));
+            bloodChart.setOption({
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data: ['收缩压', '舒张压']
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '血压(mmHg)'
+                },
+                series: [
+                    {
+                        name: '收缩压',
+                        data: [120, 118, 122, 119, 121, 120, 118],
+                        type: 'line',
+                        smooth: true,
+                        itemStyle: {
+                            color: '#E91E63'
+                        }
+                    },
+                    {
+                        name: '舒张压',
+                        data: [80, 78, 82, 79, 81, 80, 78],
+                        type: 'line',
+                        smooth: true,
+                        itemStyle: {
+                            color: '#9C27B0'
+                        }
+                    }
+                ]
+            });
+
+            // 图表切换事件
+            document.querySelectorAll('.chart-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    document.querySelectorAll('.chart-card').forEach(card => card.style.display = 'none');
+                    document.getElementById(`${this.dataset.chart}Chart`).style.display = 'block';
+                });
+            });
+
+            // 时间周期切换事件
+            document.querySelectorAll('.chart-action-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const parent = this.closest('.chart-actions');
+                    parent.querySelectorAll('.chart-action-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 这里可以添加不同时间周期的数据更新逻辑
+                    showToast('正在加载数据...');
+                });
+            });
+        }
+
+        // 在页面加载完成后初始化图表
+        document.addEventListener('DOMContentLoaded', function() {
+            initCharts();
+            // 默认显示登录页面
+            document.querySelector('.auth-container').style.display = 'block';
+        });
+
+        // 发送聊天消息
+        document.querySelector('.chat-send-btn').addEventListener('click', function() {
+            sendChatMessage();
+        });
+
+        document.querySelector('.chat-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        });
+
+        function sendChatMessage() {
+            const input = document.querySelector('.chat-input');
+            const message = input.value.trim();
+            
+            if (message) {
+                const chatContainer = document.querySelector('.consultation-chat');
+                const newMessage = document.createElement('div');
+                newMessage.className = 'chat-message chat-message-self';
+                newMessage.innerHTML = `
+                    <div class="chat-message-content">
+                        ${message}
+                    </div>
+                `;
+                chatContainer.appendChild(newMessage);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                input.value = '';
+
+                // 模拟医生回复
+                setTimeout(() => {
+                    const doctorReply = document.createElement('div');
+                    doctorReply.className = 'chat-message chat-message-other';
+                    doctorReply.innerHTML = `
+                        <div class="chat-message-content">
+                            感谢您提供的信息，我们需要进一步了解您的症状。请问您有心脏病家族史吗？
+                        </div>
+                    `;
+                    chatContainer.appendChild(doctorReply);
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }, 2000);
+            }
+        }
+
+        // 控制按钮状态
+        document.querySelectorAll('.consultation-action-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.classList.contains('mute')) {
+                    this.classList.toggle('active');
+                    const icon = this.querySelector('i');
+                    if (this.classList.contains('active')) {
+                        icon.className = 'mdi mdi-microphone';
+                    } else {
+                        icon.className = 'mdi mdi-microphone-off';
+                    }
+                } else if (this.classList.contains('video')) {
+                    this.classList.toggle('active');
+                    const icon = this.querySelector('i');
+                    if (this.classList.contains('active')) {
+                        icon.className = 'mdi mdi-video';
+                    } else {
+                        icon.className = 'mdi mdi-video-off';
+                    }
+                } else if (this.classList.contains('end')) {
+                    showToast('问诊已结束');
+                    switchPage('main-content');
+                }
+            });
+        });
+    </script>
+</body>
+</html> 
