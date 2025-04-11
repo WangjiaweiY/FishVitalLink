@@ -1,0 +1,41 @@
+// 全局变量
+:root {
+  --primary-color: #1E88E5;
+  --secondary-color: #4CAF50;
+  --warning-color: #FF9800;
+  --background-color: #F5F7FA;
+  --text-color: #333333;
+}
+
+// 重置样式
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+// 通用样式类
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+// 响应式布局
+@media (max-width: 768px) {
+  .container {
+    padding: 0 10px;
+  }
+} 
