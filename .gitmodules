@@ -1,3 +1,6 @@
 [submodule "FishVitalLinkBankend"]
 	path = FishVitalLinkBankend
 	url = https://github.com/WangjiaweiY/FishVitalLink_Backend
+[submodule "FishVitalLink_Web"]
+	path = FishVitalLink_Web
+	url = https://github.com/WangjiaweiY/FishVitalLink_Web
